@@ -5,8 +5,8 @@ python3 -m pip install flask            -> Install Flask web framework
 python3 -m pip install flask requests   -> Install Flask and Requests (used to call APIs)
 
 
-We will use:
-
+Technologies Used
 Python
 Flask
-OpenWeather API
+HTML
+API Integration
