@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            transition: background 0.5s ease-in-out;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Background animations for different weather conditions */
+        .weather-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Clear Sky */
+        .bg-clear {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: clearSky 15s ease infinite;
+        }
+
+        @keyframes clearSky {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.1); }
+        }
+
+        /* Clouds */
+        .bg-clouds {
+            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+            animation: cloudySky 20s ease infinite;
+        }
+
+        @keyframes cloudySky {
+            0%, 100% { filter: brightness(0.95); }
+            50% { filter: brightness(1.05); }
+        }
+
+        /* Rain */
+        .bg-rain {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        .rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .raindrops {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            animation: rain 0.5s linear infinite;
+        }
+
+        @keyframes rain {
+            0% {
+                transform: translateY(-100vh) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Snow */
+        .bg-snow {
+            background: linear-gradient(135deg, #e0e7ff 0%, #b8c5d6 100%);
+        }
+
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .snowflake {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: snowfall 10s linear infinite;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+        }
+
+        @keyframes snowfall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Thunderstorm */
+        .bg-thunderstorm {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            animation: lightning 4s ease-in-out infinite;
+        }
+
+        @keyframes lightning {
+            0%, 100% { filter: brightness(0.8); }
+            50% { filter: brightness(1.2); }
+        }
+
+        /* Mist/Fog */
+        .bg-mist {
+            background: linear-gradient(135deg, #a8b5c9 0%, #c0c5d1 100%);
+            animation: foggy 8s ease infinite;
+        }
+
+        @keyframes foggy {
+            0%, 100% { filter: blur(2px) brightness(0.95); }
+            50% { filter: blur(4px) brightness(1.05); }
+        }
+
+        /* Snow/Sleet */
+        .bg-snow-sleet {
+            background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+            animation: cloudySky 15s ease infinite;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-size: 1em;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .weather-info {
+            animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .weather-info h2 {
+            color: white;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .weather-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .weather-detail strong {
+            min-width: 100px;
+        }
+
+        .weather-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="weather-bg" id="weatherBg"></div>
+    <div id="particleContainer"></div>
+
+    <div class="container">
+        <h1>🌤️ Weather App</h1>
+
+        <form method="POST">
+            <input type="text" name="city" placeholder="Enter city name...">
+            <button type="submit">Search</button>
+        </form>
+
+        {% if weather %}
+        <div class="weather-info">
+            <h2>{{ weather.city }}</h2>
+            <div class="weather-icon" id="weatherIcon"></div>
+            <div class="weather-detail">
+                <strong>Temperature:</strong> {{ weather.temp }} °C
+            </div>
+            <div class="weather-detail">
+                <strong>Condition:</strong> {{ weather.description | capitalize }}
+            </div>
+            <div class="weather-detail">
+                <strong>Humidity:</strong> {{ weather.humidity }}%
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const weatherDescription = "{{ weather.description if weather else '' }}".toLowerCase();
+        const weatherBg = document.getElementById('weatherBg');
+        const particleContainer = document.getElementById('particleContainer');
+        const weatherIcon = document.getElementById('weatherIcon');
+
+        function setWeatherTheme(condition) {
+            // Clear previous classes and particles
+            weatherBg.className = 'weather-bg';
+            particleContainer.innerHTML = '';
+
+            // Set icon and theme based on weather condition
+            if (condition.includes('clear') || condition.includes('sunny')) {
+                weatherBg.classList.add('bg-clear');
+                weatherIcon.textContent = '☀️';
+            } else if (condition.includes('cloud')) {
+                weatherBg.classList.add('bg-clouds');
+                weatherIcon.textContent = '☁️';
+            } else if (condition.includes('rain')) {
+                weatherBg.classList.add('bg-rain');
+                weatherIcon.textContent = '🌧️';
+                createRain();
+            } else if (condition.includes('drizzle')) {
+                weatherBg.classList.add('bg-clouds');
+                weatherIcon.textContent = '🌦️';
+                createRain(30);
+            } else if (condition.includes('thunder') || condition.includes('storm')) {
+                weatherBg.classList.add('bg-thunderstorm');
+                weatherIcon.textContent = '⛈️';
+                createRain(100);
+            } else if (condition.includes('snow')) {
+                weatherBg.classList.add('bg-snow');
+                weatherIcon.textContent = '❄️';
+                createSnow();
+            } else if (condition.includes('mist') || condition.includes('fog')) {
+                weatherBg.classList.add('bg-mist');
+                weatherIcon.textContent = '🌫️';
+            } else if (condition.includes('sleet') || condition.includes('hail')) {
+                weatherBg.classList.add('bg-snow-sleet');
+                weatherIcon.textContent = '🌨️';
+                createSnow(50);
+                createRain(30);
+            } else {
+                weatherBg.classList.add('bg-clouds');
+                weatherIcon.textContent = '🌤️';
+            }
+        }
+
+        function createRain(count = 100) {
+            for (let i = 0; i < count; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.classList.add('raindrops');
+                raindrop.style.left = Math.random() * 100 + '%';
+                raindrop.style.top = Math.random() * -100 + 'px';
+                raindrop.style.animationDelay = Math.random() * 0.5 + 's';
+                raindrop.style.animationDuration = (0.3 + Math.random() * 0.3) + 's';
+                particleContainer.appendChild(raindrop);
+            }
+        }
+
+        function createSnow(count = 80) {
+            for (let i = 0; i < count; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.top = Math.random() * -100 + 'px';
+                snowflake.style.animationDelay = Math.random() * 2 + 's';
+                snowflake.style.animationDuration = (8 + Math.random() * 5) + 's';
+                particleContainer.appendChild(snowflake);
+            }
+        }
+
+        // Apply theme on page load
+        if (weatherDescription) {
+            setWeatherTheme(weatherDescription);
+        } else {
+            weatherBg.classList.add('bg-clear');
+        }
+    </script>
+</body>
+</html>
